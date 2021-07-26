@@ -42,9 +42,9 @@ import (
 )
 
 const (
-	terraformInitContainerImg = "busybox:latest"
+	terraformInitContainerImg = "localhost:5000/busybox"
 	// TerraformImage is the Terraform image which can run `terraform init/plan/apply`
-	terraformImage     = "oamdev/docker-terraform:1.0.4"
+	terraformImage     = "localhost:5000/docker-terraform:1.0.4"
 	TerraformWorkspace = "default"
 )
 
