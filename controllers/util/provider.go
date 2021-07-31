@@ -24,7 +24,7 @@ type CloudProvider string
 const (
 	Alibaba       CloudProvider = "alibaba"
 	AWS           CloudProvider = "aws"
-	LocalStackAWS CloudProvider = "localstackaws"
+	LocalStackAWS CloudProvider = "localstack"
 	GCP           CloudProvider = "gcp"
 	Azure         CloudProvider = "azure"
 	VSphere       CloudProvider = "vsphere"

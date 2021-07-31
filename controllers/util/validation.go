@@ -59,7 +59,7 @@ func ValidConfiguration(providerNamespace string, ctx context.Context, k8sClient
 			return "", "", errors.Wrap(err, errMsg)
 		}
 		providerTF := ""
-		if provider.Spec.Provider == "localstackaws" {
+		if provider.Spec.Provider == "localstack" {
 			providerTF = localStackProviderTF
 		}
 		if provider.Spec.Backend != nil {
