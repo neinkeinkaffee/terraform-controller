@@ -53,13 +53,27 @@ spec:
                 users, it still will set by the controller, ignoring the settings
                 in HCL/JSON backend
               properties:
+                bucket:
+                  description: Bucket is the name of the state bucket
+                  type: string
                 inClusterConfig:
                   description: InClusterConfig Used to authenticate to the cluster
-                    from inside a pod. Only `true` is allowed
+                    from inside a pod.
                   type: boolean
+                key:
+                  description: Key is the key under which the Terraform state is stored
+                    in the state bucket
+                  type: string
+                region:
+                  description: Bucket is the region of the state bucket
+                  type: string
                 secretSuffix:
                   description: 'SecretSuffix used when creating secrets. Secrets will
                     be named in the format: tfstate-{workspace}-{secretSuffix}'
+                  type: string
+                type:
+                  description: Type is the type of the backend (s3, localStackS3 or
+                    kubernetes), defaults to kubernetes
                   type: string
               type: object
             hcl:

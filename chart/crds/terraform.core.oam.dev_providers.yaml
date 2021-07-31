@@ -34,6 +34,24 @@ spec:
         spec:
           description: ProviderSpec defines the desired state of Provider.
           properties:
+            backend:
+              description: ProviderBackend defines the backend that stores Terraform
+                state (Currently only supports fields for S3 backend)
+              properties:
+                bucket:
+                  description: Bucket is the name of the state bucket
+                  type: string
+                region:
+                  description: Region is the region of the state bucket
+                  type: string
+                type:
+                  description: Type is the type of backend (s3 or localStackS3)
+                  type: string
+              required:
+              - bucket
+              - region
+              - type
+              type: object
             credentials:
               description: Credentials required to authenticate to this provider.
               properties:

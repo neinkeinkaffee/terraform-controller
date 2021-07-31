@@ -194,7 +194,7 @@ func (r *ConfigurationReconciler) terraformApply(ctx context.Context, namespace 
 			}
 		}
 
-		configurationType, inputConfiguration, err := util.ValidConfiguration(&configuration, controllerNamespace)
+		configurationType, inputConfiguration, err := util.ValidConfiguration(namespace, ctx, r.Client, &configuration, controllerNamespace)
 		if err != nil {
 			return err
 		}

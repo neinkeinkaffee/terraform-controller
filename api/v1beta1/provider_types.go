@@ -22,6 +22,20 @@ import (
 	types "github.com/oam-dev/terraform-controller/api/types/crossplane-runtime"
 )
 
+// ProviderBackend defines the backend that stores Terraform state
+// Currently only supports fields for S3 backend
+// If not configured, terraform-controller will default to Kubernetes backend
+type ProviderBackend struct {
+	// Bucket is the name of the state bucket
+	Bucket string `json:"bucket"`
+
+	// Region is the region of the state bucket
+	Region string `json:"region"`
+
+	// Type is the type of backend (s3 or localStackS3)
+	Type string `json:"type"`
+}
+
 // ProviderSpec defines the desired state of Provider.
 type ProviderSpec struct {
 	// Provider is the cloud service provider, like `alibaba`
@@ -32,6 +46,10 @@ type ProviderSpec struct {
 
 	// Credentials required to authenticate to this provider.
 	Credentials ProviderCredentials `json:"credentials"`
+
+	// ProviderBackend defines the backend that stores Terraform state
+	// If not configured, terraform-controller will default to Kubernetes backend
+	Backend *ProviderBackend `json:"backend,omitempty"`
 }
 
 // ProviderCredentials required to authenticate.

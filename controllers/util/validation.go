@@ -1,10 +1,13 @@
 package util
 
 import (
+	"context"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/pkg/errors"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/oam-dev/terraform-controller/api/v1beta1"
 )
@@ -16,7 +19,7 @@ const (
 	ConfigurationHCL  ConfigurationType = "HCL"
 )
 
-func ValidConfiguration(configuration *v1beta1.Configuration, controllerNamespace string) (ConfigurationType, string, error) {
+func ValidConfiguration(providerNamespace string, ctx context.Context, k8sClient client.Client, configuration *v1beta1.Configuration, controllerNamespace string) (ConfigurationType, string, error) {
 	json := configuration.Spec.JSON
 	hcl := configuration.Spec.HCL
 	switch {
@@ -27,7 +30,29 @@ func ValidConfiguration(configuration *v1beta1.Configuration, controllerNamespac
 	case json != "":
 		return ConfigurationJSON, json, nil
 	case hcl != "":
-		if configuration.Spec.Backend != nil {
+		var providerName string
+		if configuration.Spec.ProviderReference != nil {
+			providerName = configuration.Spec.ProviderReference.Name
+		} else {
+			providerName = "default"
+		}
+		var provider v1beta1.Provider
+		if providerName != "" {
+			if err := k8sClient.Get(ctx, client.ObjectKey{Name: providerName, Namespace: providerNamespace}, &provider); err != nil {
+				errMsg := "failed to get Provider object"
+				klog.ErrorS(err, errMsg, "Name", providerName)
+				return "", "", errors.Wrap(err, errMsg)
+			}
+		}
+		if provider.Spec.Backend != nil {
+			configuration.Spec.Backend = &v1beta1.Backend{
+				Type:            provider.Spec.Backend.Type,
+				Bucket:          provider.Spec.Backend.Bucket,
+				Region:          provider.Spec.Backend.Region,
+				Key:             configuration.Name,
+				InClusterConfig: false,
+			}
+		} else if configuration.Spec.Backend != nil {
 			if configuration.Spec.Backend.SecretSuffix == "" {
 				configuration.Spec.Backend.SecretSuffix = configuration.Name
 			}

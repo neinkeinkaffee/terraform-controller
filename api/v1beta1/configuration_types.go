@@ -63,10 +63,18 @@ type Property struct {
 
 // Backend stores the state in a Kubernetes secret with locking done using a Lease resource.
 type Backend struct {
+	// Type is the type of the backend (s3, localStackS3 or kubernetes), defaults to kubernetes
+	Type string `json:"type,omitempty"`
 	// SecretSuffix used when creating secrets. Secrets will be named in the format: tfstate-{workspace}-{secretSuffix}
 	SecretSuffix string `json:"secretSuffix,omitempty"`
-	// InClusterConfig Used to authenticate to the cluster from inside a pod. Only `true` is allowed
+	// InClusterConfig Used to authenticate to the cluster from inside a pod.
 	InClusterConfig bool `json:"inClusterConfig,omitempty"`
+	// Bucket is the name of the state bucket
+	Bucket string `json:"bucket,omitempty"`
+	// Key is the key under which the Terraform state is stored in the state bucket
+	Key string `json:"key,omitempty"`
+	// Bucket is the region of the state bucket
+	Region string `json:"region,omitempty"`
 }
 
 // +kubebuilder:object:root=true

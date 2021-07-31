@@ -27,12 +27,35 @@ import (
 	"github.com/oam-dev/terraform-controller/api/v1beta1"
 )
 
-var backendTF = `
+var kubernetesBackendTF = `
 terraform {
   backend "kubernetes" {
     secret_suffix     = "{{.SecretSuffix}}"
     in_cluster_config = {{.InClusterConfig}}
     namespace         = "{{.Namespace}}"
+  }
+}
+`
+
+var s3BackendTF = `
+terraform {
+  backend "s3" {
+    bucket 						= "{{.BucketName}}"
+    key    						= "{{.BucketKey}}"
+    region 						= "{{.BucketRegion}}"
+  }
+}
+`
+var localStackS3BackendTF = `
+terraform {
+  backend "s3" {
+    bucket 						= "{{.BucketName}}"
+    key    						= "{{.BucketKey}}"
+    region 						= "{{.BucketRegion}}"
+    endpoint                    = "http://localstack:4566"
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
   }
 }
 `
@@ -59,18 +82,37 @@ type backendVars struct {
 	SecretSuffix    string
 	InClusterConfig bool
 	Namespace       string
+	BucketName      string
+	BucketKey       string
+	BucketRegion    string
 }
 
 func renderTemplate(backend *v1beta1.Backend, namespace string) (string, error) {
+	var backendTF string
+	var templateVars backendVars
+	if backend.InClusterConfig == true {
+		backendTF = kubernetesBackendTF
+		templateVars = backendVars{
+			SecretSuffix:    backend.SecretSuffix,
+			InClusterConfig: backend.InClusterConfig,
+			Namespace:       namespace,
+		}
+	} else { // S3 backend
+		if backend.Type == "s3" {
+			backendTF = s3BackendTF
+		} else {
+			backendTF = localStackS3BackendTF
+		}
+		templateVars = backendVars{
+			BucketKey:    backend.Key,
+			BucketName:   backend.Bucket,
+			BucketRegion: backend.Region,
+		}
+	}
+
 	tmpl, err := template.New("backend").Funcs(template.FuncMap(sprig.FuncMap())).Parse(backendTF)
 	if err != nil {
 		return "", err
-	}
-
-	templateVars := backendVars{
-		SecretSuffix:    backend.SecretSuffix,
-		InClusterConfig: backend.InClusterConfig,
-		Namespace:       namespace,
 	}
 	var wr bytes.Buffer
 	err = tmpl.Execute(&wr, templateVars)
