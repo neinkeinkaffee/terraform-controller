@@ -22,11 +22,12 @@ const (
 type CloudProvider string
 
 const (
-	Alibaba CloudProvider = "alibaba"
-	AWS     CloudProvider = "aws"
-	GCP     CloudProvider = "gcp"
-	Azure   CloudProvider = "azure"
-	VSphere CloudProvider = "vsphere"
+	Alibaba       CloudProvider = "alibaba"
+	AWS           CloudProvider = "aws"
+	LocalStackAWS CloudProvider = "localstackaws"
+	GCP           CloudProvider = "gcp"
+	Azure         CloudProvider = "azure"
+	VSphere       CloudProvider = "vsphere"
 )
 
 const (
@@ -126,7 +127,7 @@ func GetProviderCredentials(ctx context.Context, k8sClient client.Client, namesp
 				EnvAlicloudRegion:    region,
 				EnvAliCloudStsToken:  ak.SecurityToken,
 			}, nil
-		case string(AWS):
+		case string(AWS), string(LocalStackAWS):
 			var ak AWSCredentials
 			if err := yaml.Unmarshal(secret.Data[secretRef.Key], &ak); err != nil {
 				klog.ErrorS(err, errConvertCredentials, "Name", secretRef.Name, "Namespace", secretRef.Namespace)

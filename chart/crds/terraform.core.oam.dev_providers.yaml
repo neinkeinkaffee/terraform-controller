@@ -36,7 +36,8 @@ spec:
           properties:
             backend:
               description: ProviderBackend defines the backend that stores Terraform
-                state (Currently only supports fields for S3 backend)
+                state If not configured, terraform-controller will default to Kubernetes
+                backend
               properties:
                 bucket:
                   description: Bucket is the name of the state bucket

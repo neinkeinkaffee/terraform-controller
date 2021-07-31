@@ -12,6 +12,22 @@ import (
 	"github.com/oam-dev/terraform-controller/api/v1beta1"
 )
 
+var localStackProviderTF = `
+provider "aws" {
+  s3_force_path_style         = true
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_requesting_account_id  = true
+  endpoints {
+    dynamodb = "http://localstack:4566"
+    glue 	 = "http://localstack:4566"
+    iam 	 = "http://localstack:4566"
+    lambda   = "http://localstack:4566"
+    s3       = "http://localstack:4566"
+  }
+}
+`
+
 type ConfigurationType string
 
 const (
@@ -37,12 +53,14 @@ func ValidConfiguration(providerNamespace string, ctx context.Context, k8sClient
 			providerName = "default"
 		}
 		var provider v1beta1.Provider
-		if providerName != "" {
-			if err := k8sClient.Get(ctx, client.ObjectKey{Name: providerName, Namespace: providerNamespace}, &provider); err != nil {
-				errMsg := "failed to get Provider object"
-				klog.ErrorS(err, errMsg, "Name", providerName)
-				return "", "", errors.Wrap(err, errMsg)
-			}
+		if err := k8sClient.Get(ctx, client.ObjectKey{Name: providerName, Namespace: providerNamespace}, &provider); err != nil {
+			errMsg := "failed to get Provider object"
+			klog.ErrorS(err, errMsg, "Name", providerName)
+			return "", "", errors.Wrap(err, errMsg)
+		}
+		providerTF := ""
+		if provider.Spec.Provider == "localstackaws" {
+			providerTF = localStackProviderTF
 		}
 		if provider.Spec.Backend != nil {
 			configuration.Spec.Backend = &v1beta1.Backend{
@@ -67,7 +85,7 @@ func ValidConfiguration(providerNamespace string, ctx context.Context, k8sClient
 		if err != nil {
 			return "", "", errors.Wrap(err, "failed to prepare Terraform backend configuration")
 		}
-		return ConfigurationHCL, hcl + "\n" + backendTF, nil
+		return ConfigurationHCL, hcl + "\n" + backendTF + "\n" + providerTF, nil
 	}
 	return "", "", errors.New("unknown issue")
 }
